@@ -51,12 +51,6 @@ def parse_args() -> Any:
         help="number of worker processes, defaults to 1 (no forking)",
     )
     parser.add_argument(
-        "--max-size",
-        default=2 ** 20,
-        required=False,
-        help="maximum file size to serve data, defaults to 1MiB",
-    )
-    parser.add_argument(
         "--encoding",
         default="utf-8",
         required=False,
@@ -83,7 +77,6 @@ def main() -> None:
     # HTTPServer(application, ssl_options=ssl_ctx)
     app = make_app(
         args.serve_dir,
-        max_size=args.max_size,
         encoding=args.encoding,
         debug=args.debug,
     )

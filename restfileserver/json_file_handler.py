@@ -89,12 +89,11 @@ class JsonFileHandler(RequestHandler):
         stat.S_IFSOCK: "socket file",
     }
 
-    def initialize(self, *, serve_dir: str, max_size: int, encoding: str) -> None:
+    def initialize(self, *, serve_dir: str, encoding: str) -> None:
         """
         Sets keyword arguments configured by the Application.
         """
         self.serve_dir = serve_dir
-        self.max_size = max_size
         self.encoding = encoding
 
     def fs_encode(self, data: str) -> bytes:
@@ -192,11 +191,8 @@ class JsonFileHandler(RequestHandler):
         For directories there will be an additional "children" field which will
         be a list of child path names (not including "." or "..").
 
-        For files there will be an additional "data" field that will normal
-        contain the file contents. If the file was too longer "data" will be
-        null and there will be a "message" field indicating this. Data will be
-        decoded using the default application encoding using the surrogate escape
-        error handler.
+        For files there will be an additional "size" and "data" field that
+        will contain the size of the file (in bytes) and the file contents.
         """
         full_path = self.get_full_path(obj_path)
 
@@ -219,12 +215,8 @@ class JsonFileHandler(RequestHandler):
             }
 
             if stat.S_ISREG(file_stat.st_mode):
-                if file_stat.st_size > self.max_size:
-                    result["data"] = None
-                    result["message"] = "file too long"
-                else:
-                    data = os.read(fd, file_stat.st_size)
-                    result["data"] = self.fs_decode(data)
+                result["size"] = file_stat.st_size
+                result["data"] = self.fs_decode(os.read(fd, file_stat.st_size))
             elif stat.S_ISDIR(file_stat.st_mode):
                 # Undo the default fs-encoding and apply the configured one.
                 # Unfortunately it seems python always returns str objects when
