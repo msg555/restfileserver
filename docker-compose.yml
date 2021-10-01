@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  weaverest:
+    build: .
+    ports:
+      - "8000:${BIND_PORT}"
+    volumes:
+      - "${SERVE_DIRECTORY}:/serve"
+    command:
+      - /serve
