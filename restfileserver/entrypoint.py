@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-CLI entrypoint for the weaverest http server.
+CLI entrypoint for the restfileserver http server.
 """
 import argparse
 import os

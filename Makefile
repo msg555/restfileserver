@@ -10,10 +10,10 @@ format-check:
 	$(PYTHON) -m black --check .
 
 pylint:
-	$(PYTHON) -m pylint weaverest tests
+	$(PYTHON) -m pylint restfileserver tests
 
 typecheck:
-	$(PYTHON) -m mypy weaverest
+	$(PYTHON) -m mypy restfileserver
 
 lint: format-check pylint typecheck
 

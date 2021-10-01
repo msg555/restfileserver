@@ -14,7 +14,7 @@ from typing import Any, Optional
 from tornado.testing import AsyncHTTPTestCase
 from tornado.web import Application
 
-from weaverest.app import make_app
+from restfileserver.app import make_app
 
 
 class FileHandlerTestBase(AsyncHTTPTestCase):

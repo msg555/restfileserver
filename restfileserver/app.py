@@ -1,5 +1,5 @@
 """
-Module for creating the weaverest tornado application object.
+Module for creating the restfileserver tornado application object.
 """
 import os
 
