@@ -4,13 +4,13 @@ CLI entrypoint for the weaverest http server.
 """
 import argparse
 import os
+import sys
 from typing import Any
 
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from tornado.web import Application
 
-from .json_file_handler import JsonFileHandler
+from .app import make_app
 
 
 def parse_args() -> Any:
@@ -70,25 +70,24 @@ def main() -> None:
     CLI entrypoint function that starts the web server.
     """
     args = parse_args()
+    args.serve_dir = os.path.realpath(args.serve_dir)
+    if not os.path.isdir(args.serve_dir):
+        sys.stderr.write(
+            "Requested serve directory doesn't exist or isn't a directory\n"
+        )
+        sys.exit(1)
 
     # ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     # ssl_ctx.load_cert_chain(os.path.join(data_dir, "mydomain.crt"),
     #                        os.path.join(data_dir, "mydomain.key"))
     # HTTPServer(application, ssl_options=ssl_ctx)
-    app = Application(
-        [
-            (
-                r"/(.*)",
-                JsonFileHandler,
-                {
-                    "serve_dir": os.path.realpath(args.serve_dir),
-                    "max_size": args.max_size,
-                    "encoding": args.encoding,
-                },
-            )
-        ],
+    app = make_app(
+        args.serve_dir,
+        max_size=args.max_size,
+        encoding=args.encoding,
         debug=args.debug,
     )
+    os.umask(0)
     if args.debug:
         app.listen(port=args.port, address=args.address)
     else:
