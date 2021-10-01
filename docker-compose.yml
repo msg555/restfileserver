@@ -6,6 +6,10 @@ services:
     ports:
       - "8000:${BIND_PORT}"
     volumes:
-      - "${SERVE_DIRECTORY}:/serve"
+      - fs-data:/serve
     command:
       - /serve
+
+
+volumes:
+  fs-data: {}

@@ -9,6 +9,43 @@ defaults to "utf-8". [surrogateescape](https://www.python.org/dev/peps/pep-0383/
 error encoding is used to add support for non-utf-8 byte seqeuence (although
 there are still limitations as non-utf-8 paths cannot be queried).
 
+## Running
+
+The webserver can be run directly using the below commands
+
+```
+pip install -r requirements.txt
+python -m restfileserver -v directory/to/serve
+```
+
+Alternatively the webserver can be built into a docker container and run
+using these commands
+
+```
+docker build -t restfileserver .
+docker run -d -p "8000:8000" -v "directory/to/serve:/serve" \
+    --name restfileserver restfileserver -v /serve
+
+# Check logs
+docker logs -f restfileserver
+
+# And later stop the server
+docker rm -f restfileserver
+```
+
+Finally, you can also use `docker-compose` to start the webserver. This
+configuration will use a persistent volume managed by docker (initialized
+to an empty directory).
+
+```
+BIND_PORT=8000 \
+SERVE_DIRECTORY=directory/to/serve \
+docker-compose up --build -d
+
+# Later stop the service
+docker-compose down
+```
+
 ## Endpoints
 
 The request URL is interpreted as the file path to the object being accessed.
@@ -134,7 +171,7 @@ The request JSON document may contain three optional keys
     for directories and "664" for files.
 - `data`: Data to write when creating/updating a file. Existing data will be
     truncated.
-
+    
 ### DELETE Method
 
 Delete a file/directory. Deleting a directory requires the directory to be
@@ -151,3 +188,4 @@ Response format
 ```
 {"message": "file deleted"}
 ```
+    

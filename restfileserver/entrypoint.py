@@ -3,6 +3,7 @@
 CLI entrypoint for the restfileserver http server.
 """
 import argparse
+import logging
 import os
 import sys
 from typing import Any
@@ -11,6 +12,8 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
 from .app import make_app
+
+LOGGER = logging.getLogger(__name__)
 
 
 def parse_args() -> Any:
@@ -56,6 +59,12 @@ def parse_args() -> Any:
         required=False,
         help="encoding to use to decode text files, defaults to utf-8",
     )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="count",
+        default=0,
+    )
     return parser.parse_args()
 
 
@@ -71,16 +80,24 @@ def main() -> None:
         )
         sys.exit(1)
 
-    # ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    # ssl_ctx.load_cert_chain(os.path.join(data_dir, "mydomain.crt"),
-    #                        os.path.join(data_dir, "mydomain.key"))
-    # HTTPServer(application, ssl_options=ssl_ctx)
+    log_level = logging.WARN
+    if args.verbose > 1:
+        log_level = logging.DEBUG
+    elif args.verbose:
+        log_level = logging.INFO
+    logging.basicConfig(
+        format="%(levelname)s: %(message)s",
+        level=log_level,
+    )
+
     app = make_app(
         args.serve_dir,
         encoding=args.encoding,
         debug=args.debug,
     )
     os.umask(0)
+
+    LOGGER.info("Starting webserver at %s:%d", args.address, args.port)
     if args.debug:
         app.listen(port=args.port, address=args.address)
     else:
