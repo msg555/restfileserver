@@ -11,7 +11,8 @@ there are still limitations as non-utf-8 paths cannot be queried).
 
 ## Running
 
-The webserver can be run directly using the below commands
+The webserver can be run directly using the below commands. By default it will
+bind to all interfaces on port 8000 (use --help to see full set of options).
 
 ```
 pip install -r requirements.txt
@@ -39,7 +40,6 @@ to an empty directory).
 
 ```
 BIND_PORT=8000 \
-SERVE_DIRECTORY=directory/to/serve \
 docker-compose up --build -d
 
 # Later stop the service
