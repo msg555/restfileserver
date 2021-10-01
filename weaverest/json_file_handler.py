@@ -271,7 +271,7 @@ class JsonFileHandler(RequestHandler):
         except IsADirectoryError as exc:
             raise ErrorResponse(
                 "cannot append to directory",
-                status=400,
+                status=422,
             ) from exc
 
         self.set_status(200)
@@ -319,7 +319,7 @@ class JsonFileHandler(RequestHandler):
             except FileExistsError as exc:
                 raise ErrorResponse(
                     "file already exists",
-                    status=400,
+                    status=422,
                 ) from exc
         else:
             try:
@@ -338,7 +338,7 @@ class JsonFileHandler(RequestHandler):
             except IsADirectoryError as exc:
                 raise ErrorResponse(
                     "cannot write to directory",
-                    status=400,
+                    status=422,
                 ) from exc
 
         self.set_status(200)
@@ -348,13 +348,13 @@ class JsonFileHandler(RequestHandler):
     def delete(self, obj_path: str) -> None:
         """
         Deletes the requested file. If the file refers to a non-empty directory
-        a 400 will be returned.
+        a 422 will be returned.
         """
         full_path = self.get_full_path(obj_path)
         if full_path == self.fs_encode(self.serve_dir):
             raise ErrorResponse(
                 "refusing to delete root directory",
-                status=400,
+                status=422,
             )
         try:
             os.unlink(full_path)
@@ -364,7 +364,7 @@ class JsonFileHandler(RequestHandler):
             except OSError as exc:
                 raise ErrorResponse(
                     "directory not empty",
-                    status=400,
+                    status=422,
                 ) from exc
 
         self.set_status(200)

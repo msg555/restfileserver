@@ -246,7 +246,7 @@ class TestHandlerUtf8(FileHandlerTestBase):
             headers={"Content-Type": "application/json"},
             body=json.dumps({"data": "testwrite"}),
         )
-        self.assertEqual(response.code, 400)
+        self.assertEqual(response.code, 422)
         self.assertEqual(
             self.get_json(response), {"message": "cannot append to directory"}
         )
@@ -385,7 +385,7 @@ class TestHandlerUtf8(FileHandlerTestBase):
             headers={"Content-Type": "application/json"},
             body=json.dumps({"data": "testwrite"}),
         )
-        self.assertEqual(response.code, 400)
+        self.assertEqual(response.code, 422)
         self.assertEqual(
             self.get_json(response), {"message": "cannot write to directory"}
         )
@@ -489,7 +489,7 @@ class TestHandlerUtf8(FileHandlerTestBase):
             headers={"Content-Type": "application/json"},
             body=json.dumps({"directory": True}).encode(),
         )
-        self.assertEqual(response.code, 400)
+        self.assertEqual(response.code, 422)
         self.assertEqual(self.get_json(response), {"message": "file already exists"})
 
         # Test create dir when parent does not exist
@@ -518,7 +518,7 @@ class TestHandlerUtf8(FileHandlerTestBase):
 
         # Test deleting non-empty directory
         response = self.fetch("/subdir", method="DELETE")
-        self.assertEqual(response.code, 400)
+        self.assertEqual(response.code, 422)
         self.assertEqual(self.get_json(response), {"message": "directory not empty"})
 
         # Test deleting file
@@ -540,7 +540,7 @@ class TestHandlerUtf8(FileHandlerTestBase):
 
         # Test deleting root directory
         response = self.fetch("/", method="DELETE")
-        self.assertEqual(response.code, 400)
+        self.assertEqual(response.code, 422)
         self.assertEqual(
             self.get_json(response), {"message": "refusing to delete root directory"}
         )
