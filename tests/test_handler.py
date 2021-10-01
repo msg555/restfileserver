@@ -23,7 +23,6 @@ class FileHandlerTestBase(AsyncHTTPTestCase):
     """
 
     encoding = "utf-8"
-    max_size = 256
 
     @classmethod
     def setUpClass(cls):
@@ -44,7 +43,6 @@ class FileHandlerTestBase(AsyncHTTPTestCase):
     def get_app(self) -> Application:
         return make_app(
             self.tempdir.name,
-            max_size=self.max_size,
             encoding=self.encoding,
         )
 
@@ -120,7 +118,7 @@ class TestHandlerUtf8(FileHandlerTestBase):
                 b"sub dir": (
                     0o723,
                     {
-                        b"bigfile": (0o400, b"a" * (self.max_size + 1)),
+                        b"bigfile": (0o400, b"a" * 300),
                     },
                 ),
                 b"hi\xffhello": (
@@ -131,7 +129,7 @@ class TestHandlerUtf8(FileHandlerTestBase):
                 ),
                 b"\xf0\x9f\x92\xa9": (
                     0o444,
-                    b"everyone loves emoji",
+                    b"emoji!",
                 ),
                 b"unreadable": (
                     0o000,
@@ -162,11 +160,13 @@ class TestHandlerUtf8(FileHandlerTestBase):
                 "mode": "456",
                 "type": "file",
                 "data": "bl💩a\udcfeh",  # \xfe is replaced with \udcfe surrogate
+                "size": 9,
             },
             "/foo/": {
                 "mode": "456",
                 "type": "file",
                 "data": "bl💩a\udcfeh",
+                "size": 9,
             },
             "/sub%20dir": {
                 "mode": "723",
@@ -181,13 +181,14 @@ class TestHandlerUtf8(FileHandlerTestBase):
             "/sub%20dir/bigfile": {
                 "mode": "400",
                 "type": "file",
-                "data": None,
-                "message": "file too long",
+                "data": "a" * 300,
+                "size": 300,
             },
             "/%F0%9F%92%A9": {
                 "mode": "444",
                 "type": "file",
-                "data": "everyone loves emoji",
+                "data": "emoji!",
+                "size": 6,
             },
         }
 
@@ -580,11 +581,13 @@ class TestHandlerLatin1(FileHandlerTestBase):
                 "mode": "456",
                 "type": "file",
                 "data": "¿Por què?",
+                "size": 9,
             },
             "/foo/": {
                 "mode": "456",
                 "type": "file",
                 "data": "¿Por què?",
+                "size": 9,
             },
         }
 
