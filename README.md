@@ -14,7 +14,7 @@ there are still limitations as non-utf-8 paths cannot be queried).
 The webserver can be run directly using the below commands. By default it will
 bind to all interfaces on port 8000 (use --help to see full set of options).
 
-```
+```sh
 pip install -r requirements.txt
 python -m restfileserver -v directory/to/serve
 ```
@@ -22,7 +22,7 @@ python -m restfileserver -v directory/to/serve
 Alternatively the webserver can be built into a docker container and run
 using these commands
 
-```
+```sh
 docker build -t restfileserver .
 docker run -d -p "8000:8000" -v "directory/to/serve:/serve" \
     --name restfileserver restfileserver -v /serve
@@ -38,7 +38,7 @@ Finally, you can also use `docker-compose` to start the webserver. This
 configuration will use a persistent volume managed by docker (initialized
 to an empty directory).
 
-```
+```sh
 BIND_PORT=8000 \
 docker-compose up --build -d
 
@@ -50,7 +50,7 @@ docker-compose down
 
 Example session communicating with the file server using the curl CLI tool.
 
-```
+```sh
 WEBSERVER=http://localhost:8000
 
 # Get root document
@@ -120,7 +120,7 @@ GET /foo/var HTTP/1.1
 
 File response format
 
-```
+```json
 {
   "mode": "775",
   "uid": 1000,
@@ -135,7 +135,7 @@ File response format
 
 Directory response format
 
-```
+```json
 {
   "mode": "775",
   "uid": 1000,
@@ -178,7 +178,7 @@ Content-Type: application/json
 
 Response format
 
-```
+```json
 {"message": "data written"}
 ```
 
@@ -201,7 +201,7 @@ Content-Type: application/json
 
 Response format
 
-```
+```json
 {"message": "object update"}
 ```
 
@@ -228,7 +228,7 @@ DELETE /foo/var HTTP/1.1
 
 Response format
 
-```
+```json
 {"message": "file deleted"}
 ```
     
