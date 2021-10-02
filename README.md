@@ -46,7 +46,50 @@ docker-compose up --build -d
 docker-compose down
 ```
 
-## Endpoints
+## CURL Client Example Session
+
+Example session communicating with the file server using the curl CLI tool.
+
+```
+WEBSERVER=http://localhost:8000
+
+# Get root document
+curl "${WEBSERVER}/"
+
+# Create file named "foo"
+curl -XPUT "${WEBSERVER}/foo" \
+  -H "Content-Type: application/json" \
+  -d '{"data": "myfiledata"}'
+
+# View file data
+curl "${WEBSERVER}/foo"
+
+# Append to "foo"
+curl -XPOST "${WEBSERVER}/foo" \
+  -H "Content-Type: application/json" \
+  -d '{"data": "moredata"}'
+
+# Create a new directory "subdir"
+curl -XPUT "${WEBSERVER}/subdir" \
+  -H "Content-Type: application/json" \
+  -d '{"directory": true}'
+
+# Create file in new folder with custom mode
+curl -XPUT "${WEBSERVER}/subdir/stuff" \
+  -H "Content-Type: application/json" \
+  -d '{"data": "stuffdata", "mode": "444"}'
+
+# Check mode and data
+curl "${WEBSERVER}/subdir/stuff"
+
+# Delete file we just created
+curl -XDELETE "${WEBSERVER}/subdir/stuff"
+
+# Delete folder we created
+curl -XDELETE "${WEBSERVER}/subdir"
+```
+
+## Endpoint Documentation
 
 The request URL is interpreted as the file path to the object being accessed.
 
