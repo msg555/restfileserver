@@ -23,6 +23,7 @@ class FileHandlerTestBase(AsyncHTTPTestCase):
     """
 
     encoding = "utf-8"
+    unicode_paths = False
 
     @classmethod
     def setUpClass(cls):
@@ -30,6 +31,19 @@ class FileHandlerTestBase(AsyncHTTPTestCase):
         cls.uid = os.getuid()
         cls.gid = os.getgid()
         os.umask(0)
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            try:
+                # Test if file system is unicode based or byte based
+                with open(
+                    os.path.join(os.fsencode(tempdir.encode()), b"\xff"),
+                    "w",
+                    encoding=cls.encoding,
+                ):
+                    pass
+            except OSError:
+                cls.unicode_paths = True
+        # cls.unicode_paths = True
 
     def setUp(self) -> None:
         # pylint: disable=consider-using-with
@@ -111,50 +125,53 @@ class TestHandlerUtf8(FileHandlerTestBase):
 
     def test_get(self):
         """Test the `get` endpoint"""
-        self.make_test(
-            0o777,
-            {
-                b"foo": (0o456, b"bl\xf0\x9f\x92\xa9a\xfeh"),
-                b"sub dir": (
-                    0o723,
-                    {
-                        b"bigfile": (0o400, b"a" * 300),
-                    },
-                ),
-                b"hi\xffhello": (
-                    0o723,
-                    {
-                        b"\xff": (0o400, b"abc"),
-                    },
-                ),
-                b"\xf0\x9f\x92\xa9": (
-                    0o444,
-                    b"emoji!",
-                ),
-                b"unreadable": (
-                    0o000,
-                    b"you'll never find me",
-                ),
-            },
-        )
+        test_structure = {
+            b"foo": (0o456, b"bl\xf0\x9f\x92\xa9a\xfeh"),
+            b"sub dir": (
+                0o723,
+                {
+                    b"bigfile": (0o400, b"a" * 300),
+                },
+            ),
+            b"unreadable": (
+                0o000,
+                b"you'll never find me",
+            ),
+        }
+        if not self.unicode_paths:
+            test_structure[b"hi\xffhello"] = (
+                0o723,
+                {
+                    b"\xff": (0o400, b"abc"),
+                },
+            )
+            test_structure[b"\xf0\x9f\x92\xa9"] = (
+                0o444,
+                b"emoji!",
+            )
+        self.make_test(0o777, test_structure)
 
         # Note: Tornado doesn't allow surrogates in the request URL so there's no way
         # to access files that have invalid utf-8 encodings.
+        root_children = sorted(
+            name.decode(self.encoding, errors="surrogateescape")
+            for name in test_structure
+        )
         test_okay = {
             "/": {
                 "mode": "777",
                 "type": "directory",
-                "children": ["foo", "hi\udcffhello", "sub dir", "unreadable", "💩"],
+                "children": root_children,
             },
             "/..": {
                 "mode": "777",
                 "type": "directory",
-                "children": ["foo", "hi\udcffhello", "sub dir", "unreadable", "💩"],
+                "children": root_children,
             },
             "/fakedir/..": {
                 "mode": "777",
                 "type": "directory",
-                "children": ["foo", "hi\udcffhello", "sub dir", "unreadable", "💩"],
+                "children": root_children,
             },
             "/foo": {
                 "mode": "456",
@@ -184,13 +201,14 @@ class TestHandlerUtf8(FileHandlerTestBase):
                 "data": "a" * 300,
                 "size": 300,
             },
-            "/%F0%9F%92%A9": {
+        }
+        if not self.unicode_paths:
+            test_okay["/%F0%9F%92%A9"] = {
                 "mode": "444",
                 "type": "file",
                 "data": "emoji!",
                 "size": 6,
-            },
-        }
+            }
 
         for path, expect_data in test_okay.items():
             response = self.fetch(path)
@@ -558,24 +576,27 @@ class TestHandlerLatin1(FileHandlerTestBase):
 
     def test_get_latin1(self):
         """Test the `get` endpoint with latin1 encoding"""
-        self.make_test(
-            0o777,
-            {
-                b"foo": (0o456, b"\xbfPor qu\xe8?"),
-                b"hi\xffhello\xf0": (
-                    0o723,
-                    {
-                        b"\xff": (0o400, b"abc"),
-                    },
-                ),
-            },
-        )
+        test_structure = {
+            b"foo": (0o456, b"\xbfPor qu\xe8?"),
+        }
+        if not self.unicode_paths:
+            test_structure[b"hi\xffhello\xf0"] = (
+                0o723,
+                {
+                    b"\xff": (0o400, b"abc"),
+                },
+            )
+
+        self.make_test(0o777, test_structure)
 
         test_okay = {
             "/": {
                 "mode": "777",
                 "type": "directory",
-                "children": ["foo", "hiÿhelloð"],
+                "children": sorted(
+                    name.decode(self.encoding, errors="surrogateescape")
+                    for name in test_structure
+                ),
             },
             "/foo": {
                 "mode": "456",

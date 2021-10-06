@@ -221,8 +221,12 @@ class JsonFileHandler(RequestHandler):
                 # Undo the default fs-encoding and apply the configured one.
                 # Unfortunately it seems python always returns str objects when
                 # listing a file descriptor.
+                if os.listdir in os.supports_fd:
+                    children = os.listdir(fd)
+                else:
+                    children = os.listdir(full_path)
                 result["children"] = sorted(
-                    self.fs_decode(os.fsencode(path)) for path in os.listdir(fd)
+                    self.fs_decode(os.fsencode(path)) for path in children
                 )
 
         self.set_status(200)
